@@ -1,0 +1,34 @@
+# --- Manipulation de données ---
+pandas>=2.2
+numpy>=1.26
+
+# --- Visualisation ---
+matplotlib>=3.8
+seaborn>=0.13
+plotly>=5.20
+
+# --- Statistiques ---
+scipy>=1.12
+
+# --- Machine Learning ---
+scikit-learn>=1.5
+imbalanced-learn>=0.12
+xgboost>=2.0
+lightgbm>=4.3
+optuna>=3.6
+
+# --- Explicabilité ---
+shap>=0.45
+
+# --- Sérialisation des modèles ---
+joblib>=1.3
+
+# --- Application de démo ---
+streamlit>=1.35
+
+# --- Notebooks ---
+jupyter>=1.0
+ipykernel>=6.29
+
+# --- Tests ---
+pytest>=8.0
