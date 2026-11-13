@@ -26,6 +26,21 @@ FIGURES_DIR = ROOT_DIR / "reports" / "figures"
 TARGET = "Churn"
 ID_COL = "customerID"
 
+NUMERIC_COLS = ["tenure", "MonthlyCharges", "TotalCharges"]
+
+CATEGORICAL_COLS = [
+    # Profil client
+    "gender", "SeniorCitizen", "Partner", "Dependents",
+    # Services souscrits
+    "PhoneService", "MultipleLines", "InternetService",
+    "OnlineSecurity", "OnlineBackup", "DeviceProtection",
+    "TechSupport", "StreamingTV", "StreamingMovies",
+    # Contrat et facturation
+    "Contract", "PaperlessBilling", "PaymentMethod",
+]
+
+FEATURE_COLS = NUMERIC_COLS + CATEGORICAL_COLS
+
 RANDOM_STATE = 42  # reproductibilité : mêmes résultats à chaque exécution
 TEST_SIZE = 0.20   # 20 % des clients réservés à l'évaluation finale
 
