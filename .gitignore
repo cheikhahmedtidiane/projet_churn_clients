@@ -1,0 +1,27 @@
+# Environnement virtuel
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Streamlit (secrets locaux)
+.streamlit/secrets.toml
+
+# IDE / OS
+.vscode/
+.idea/
+.claude/
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Données intermédiaires régénérables
+data/interim/
