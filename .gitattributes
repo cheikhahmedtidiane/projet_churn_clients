@@ -1,0 +1,5 @@
+# Normalise les fins de ligne (Windows CRLF / Linux LF)
+* text=auto
+
+# Les données brutes ne doivent jamais être modifiées, même par Git
+*.csv -text
