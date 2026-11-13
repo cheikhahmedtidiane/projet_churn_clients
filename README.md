@@ -19,7 +19,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 |---|---|---|
 | 0 | Cadrage métier | ✅ |
 | 1 | Mise en place du projet | ✅ |
-| 2 | Qualité et nettoyage des données | ⏳ |
+| 2 | Qualité et nettoyage des données | ✅ |
 | 3 | Analyse exploratoire orientée insights | ⏳ |
 | 4 | Feature engineering et pipeline | ⏳ |
 | 5 | Modélisation et comparaison | ⏳ |
@@ -27,6 +27,15 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | 7 | Explicabilité (SHAP) | ⏳ |
 | 8 | Application Streamlit | ⏳ |
 | 9 | Valorisation et model card | ⏳ |
+
+## Avancement et résultats clés
+
+**Phase 2 — Qualité des données** ([notebook](notebooks/02_qualite_donnees.ipynb))
+- 11 valeurs manquantes **cachées** dans `TotalCharges` (un espace `" "`, invisible pour `isna()`), correspondant toutes à des clients de **0 mois d'ancienneté** → fixées à 0 (nouveaux clients pas encore facturés) plutôt qu'imputées.
+- Aucun doublon réel, aucune valeur aberrante, cohérence `TotalCharges ≈ ancienneté × facture` vérifiée.
+- Nettoyage industrialisé dans [`src/churn/data.py`](src/churn/data.py) et couvert par des tests, réutilisé tel quel par l'application.
+
+<img src="reports/figures/02_distribution_cible.png" width="480" alt="Distribution de la variable cible : 73,5 % restent, 26,5 % partent">
 
 ## Données
 

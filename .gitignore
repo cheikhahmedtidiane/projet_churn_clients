@@ -25,3 +25,4 @@ Thumbs.db
 
 # Données intermédiaires régénérables
 data/interim/
+data/processed/*.parquet

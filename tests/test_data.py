@@ -95,3 +95,11 @@ def test_real_dataset_is_clean():
     assert df.isna().sum().sum() == 0
     assert df.index.is_unique
     assert df[TARGET].mean() == pytest.approx(0.2654, abs=1e-3)
+
+
+def test_parquet_round_trip_keeps_dtypes(raw_sample, tmp_path):
+    from churn.data import save_processed
+
+    out = clean(raw_sample)
+    reloaded = pd.read_parquet(save_processed(out, tmp_path / "sample.parquet"))
+    pd.testing.assert_frame_equal(reloaded, out)

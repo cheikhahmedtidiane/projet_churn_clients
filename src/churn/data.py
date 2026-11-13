@@ -57,7 +57,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     # Espaces parasites dans les colonnes texte
     for col in df.columns:
         if not pd.api.types.is_numeric_dtype(df[col]):
-            df[col] = df[col].astype("string").str.strip()
+            df[col] = df[col].astype(str).str.strip()
 
     # 1. TotalCharges
     df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
@@ -70,7 +70,7 @@ def clean(df: pd.DataFrame) -> pd.DataFrame:
     df["TotalCharges"] = df["TotalCharges"].astype(float)
 
     # 2. SeniorCitizen 0/1 → No/Yes (accepte aussi des valeurs déjà en No/Yes)
-    df["SeniorCitizen"] = df["SeniorCitizen"].astype("string").replace({"0": "No", "1": "Yes"})
+    df["SeniorCitizen"] = df["SeniorCitizen"].astype(str).replace({"0": "No", "1": "Yes"})
 
     # 3. Typage catégoriel
     for col in CATEGORICAL_COLS:
