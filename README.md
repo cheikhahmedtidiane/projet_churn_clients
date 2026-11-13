@@ -18,7 +18,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | Phase | Contenu | Statut |
 |---|---|---|
 | 0 | Cadrage métier | ✅ |
-| 1 | Mise en place du projet | ⏳ |
+| 1 | Mise en place du projet | ✅ |
 | 2 | Qualité et nettoyage des données | ⏳ |
 | 3 | Analyse exploratoire orientée insights | ⏳ |
 | 4 | Feature engineering et pipeline | ⏳ |
@@ -31,3 +31,29 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 ## Données
 
 [IBM Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn) : 7 043 clients, 21 variables (profil, services souscrits, contrat, facturation, churn).
+
+## Structure du projet
+
+```
+├── app/                 Application Streamlit
+├── data/
+│   ├── raw/             Données originales (jamais modifiées)
+│   └── processed/       Données nettoyées (générées par le code)
+├── docs/                Documentation (cadrage métier…)
+├── models/              Modèles entraînés
+├── notebooks/           Analyses numérotées par phase
+├── reports/figures/     Graphiques exportés
+├── src/churn/           Code réutilisable (config, nettoyage, features, modèle)
+└── tests/               Tests unitaires (pytest)
+```
+
+## Installation
+
+```bash
+git clone https://github.com/cheikhahmedtidiane/projet_churn_clients.git
+cd projet_churn_clients
+python -m venv .venv
+.venv\Scripts\activate          # Windows  (Linux/Mac : source .venv/bin/activate)
+pip install -r requirements.txt
+pytest                          # vérifie l'installation
+```

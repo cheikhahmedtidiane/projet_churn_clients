@@ -32,3 +32,6 @@ ipykernel>=6.29
 
 # --- Tests ---
 pytest>=8.0
+
+# --- Package du projet (src/churn) en mode éditable ---
+-e .
