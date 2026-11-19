@@ -47,8 +47,9 @@ STREAMING_SERVICES = ["StreamingTV", "StreamingMovies"]
 INTERNET_OPTIONS = PROTECTION_SERVICES + STREAMING_SERVICES  # n'existent qu'avec internet
 NEW_CLIENT_MAX_TENURE = 6  # mois : zone de risque maximal identifiée en EDA
 
-ENGINEERED_NUMERIC = ["log_tenure", "nb_protections", "nb_streaming"]
-ENGINEERED_FLAGS = ["is_new_client", "fiber_month_to_month"]
+# Features candidates issues de l'EDA, puis sélection validée par ablation (notebook 04)
+CANDIDATE_FEATURES = ["log_tenure", "nb_protections", "nb_streaming", "is_new_client", "fiber_month_to_month"]
+SELECTED_FEATURES = ["log_tenure", "fiber_month_to_month"]
 
 # Variables retirées : sans lien avec le churn (gender, PhoneService) ou redondantes (TotalCharges)
 DROPPED_COLS = ["gender", "PhoneService", "TotalCharges"]

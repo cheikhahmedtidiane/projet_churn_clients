@@ -10,12 +10,11 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from churn.config import (
     DROPPED_COLS,
-    ENGINEERED_FLAGS,
-    ENGINEERED_NUMERIC,
     INTERNET_OPTIONS,
     NEW_CLIENT_MAX_TENURE,
     PROTECTION_SERVICES,
     RANDOM_STATE,
+    SELECTED_FEATURES,
     STREAMING_SERVICES,
     TARGET,
     TEST_SIZE,
@@ -37,6 +36,18 @@ def split_data(df: pd.DataFrame, test_size: float = TEST_SIZE,
     return train_test_split(X, y, test_size=test_size, stratify=y, random_state=random_state)
 
 
+# Calcul de chaque feature candidate (à partir des données nettoyées)
+FEATURE_BUILDERS = {
+    "log_tenure": lambda X: np.log1p(X["tenure"]),
+    "nb_protections": lambda X: (X[PROTECTION_SERVICES] == "Yes").sum(axis=1),
+    "nb_streaming": lambda X: (X[STREAMING_SERVICES] == "Yes").sum(axis=1),
+    "is_new_client": lambda X: (X["tenure"] <= NEW_CLIENT_MAX_TENURE).astype(int),
+    "fiber_month_to_month": lambda X: (
+        (X["InternetService"] == "Fiber optic") & (X["Contract"] == "Month-to-month")
+    ).astype(int),
+}
+
+
 class ChurnFeatureEngineer(BaseEstimator, TransformerMixin):
     """Ajoute les features métier issues de l'EDA et retire les variables inutiles.
 
@@ -44,20 +55,24 @@ class ChurnFeatureEngineer(BaseEstimator, TransformerMixin):
     de fuite de données, et s'applique à l'identique à l'entraînement et en production.
 
     Args:
-        add_features: ajoute les features métier (désactivable pour comparer).
+        features: features métier à ajouter (parmi FEATURE_BUILDERS). Par défaut, la
+            sélection validée par l'étude d'ablation ; () pour n'en ajouter aucune.
         drop_cols: variables à retirer.
         merge_no_internet: recode « No internet service » en « No » pour les services
             optionnels. Sans cela, l'absence d'internet est encodée 7 fois à l'identique
             (multicolinéarité parfaite) ; elle reste portée par InternetService = No.
     """
 
-    def __init__(self, add_features: bool = True, drop_cols: tuple = tuple(DROPPED_COLS),
-                 merge_no_internet: bool = True):
-        self.add_features = add_features
+    def __init__(self, features: tuple = tuple(SELECTED_FEATURES),
+                 drop_cols: tuple = tuple(DROPPED_COLS), merge_no_internet: bool = True):
+        self.features = features
         self.drop_cols = drop_cols
         self.merge_no_internet = merge_no_internet
 
     def fit(self, X: pd.DataFrame, y=None):
+        unknown = set(self.features) - set(FEATURE_BUILDERS)
+        if unknown:
+            raise ValueError(f"Features inconnues : {sorted(unknown)}")
         self.feature_names_in_ = np.asarray(X.columns, dtype=object)
         return self
 
@@ -66,20 +81,13 @@ class ChurnFeatureEngineer(BaseEstimator, TransformerMixin):
         if self.merge_no_internet:
             for col in INTERNET_OPTIONS:
                 X[col] = X[col].astype(str).replace("No internet service", "No").astype("category")
-        if self.add_features:
-            X["log_tenure"] = np.log1p(X["tenure"])
-            X["nb_protections"] = (X[PROTECTION_SERVICES] == "Yes").sum(axis=1)
-            X["nb_streaming"] = (X[STREAMING_SERVICES] == "Yes").sum(axis=1)
-            X["is_new_client"] = (X["tenure"] <= NEW_CLIENT_MAX_TENURE).astype(int)
-            X["fiber_month_to_month"] = (
-                (X["InternetService"] == "Fiber optic") & (X["Contract"] == "Month-to-month")
-            ).astype(int)
+        for name in self.features:
+            X[name] = FEATURE_BUILDERS[name](X)
         return X.drop(columns=[c for c in self.drop_cols if c in X.columns])
 
     def get_feature_names_out(self, input_features=None):
         names = [c for c in self.feature_names_in_ if c not in self.drop_cols]
-        if self.add_features:
-            names += ENGINEERED_NUMERIC + ENGINEERED_FLAGS
+        names += [c for c in self.features if c not in self.drop_cols]
         return np.asarray(names, dtype=object)
 
 
@@ -101,7 +109,7 @@ def build_preprocessor() -> ColumnTransformer:
     )
 
 
-def build_pipeline(model, add_features: bool = True,
+def build_pipeline(model, features: tuple = tuple(SELECTED_FEATURES),
                    drop_cols: tuple = tuple(DROPPED_COLS),
                    merge_no_internet: bool = True) -> Pipeline:
     """Pipeline complet : features métier → prétraitement → modèle.
@@ -111,7 +119,7 @@ def build_pipeline(model, add_features: bool = True,
     Le pipeline entraîné prend en entrée des données nettoyées par `churn.data.clean`.
     """
     pipeline = Pipeline([
-        ("features", ChurnFeatureEngineer(add_features=add_features, drop_cols=drop_cols,
+        ("features", ChurnFeatureEngineer(features=features, drop_cols=drop_cols,
                                           merge_no_internet=merge_no_internet)),
         ("preprocess", build_preprocessor()),
         ("model", model),

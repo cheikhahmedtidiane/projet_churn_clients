@@ -21,7 +21,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | 1 | Mise en place du projet | ✅ |
 | 2 | Qualité et nettoyage des données | ✅ |
 | 3 | Analyse exploratoire orientée insights | ✅ |
-| 4 | Feature engineering et pipeline | ⏳ |
+| 4 | Feature engineering et pipeline | ✅ |
 | 5 | Modélisation et comparaison | ⏳ |
 | 6 | Évaluation et optimisation business du seuil | ⏳ |
 | 7 | Explicabilité (SHAP) | ⏳ |
@@ -54,6 +54,14 @@ Le **genre** n'a aucun lien avec le churn (p = 0,49).
 - Nettoyage industrialisé dans [`src/churn/data.py`](src/churn/data.py) et couvert par des tests, réutilisé tel quel par l'application.
 
 <img src="reports/figures/02_distribution_cible.png" width="480" alt="Distribution de la variable cible : 73,5 % restent, 26,5 % partent">
+
+**Phase 4 — Feature engineering et pipeline** ([notebook](notebooks/04_feature_engineering.ipynb))
+- Jeu de test **mis sous clé** dès le départ : toutes les décisions sont prises en validation croisée sur l'entraînement.
+- Pipeline scikit-learn `ChurnFeatureEngineer → OneHot + StandardScaler → modèle` : zéro fuite de données, un seul objet à déployer.
+- Multicolinéarité parfaite supprimée (« No internet service » encodé 7 fois à l'identique).
+- **Étude d'ablation** sur 2 familles de modèles : sur 5 features candidates issues de l'EDA, seules `log_tenure` et `fiber_month_to_month` apportent un gain. Les 3 autres sont abandonnées, pour un modèle plus simple sans perte de performance.
+
+<img src="reports/figures/04_ablation.png" width="760" alt="Étude d'ablation : PR-AUC en validation croisée selon les étapes du feature engineering">
 
 ## Données
 

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from churn.config import TARGET
+from churn.config import CANDIDATE_FEATURES, SELECTED_FEATURES, TARGET
 from churn.data import load_clean
 from sklearn.linear_model import LogisticRegression
 
@@ -42,7 +42,7 @@ def test_split_is_reproducible(clean_df):
 
 def test_feature_engineer_values():
     X = load_clean().drop(columns=TARGET).head(200)
-    out = ChurnFeatureEngineer().fit_transform(X)
+    out = ChurnFeatureEngineer(features=tuple(CANDIDATE_FEATURES)).fit_transform(X)
     row, src = out.iloc[0], X.iloc[0]
     expected_prot = sum(src[c] == "Yes" for c in ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport"])
     assert row["nb_protections"] == expected_prot
@@ -62,7 +62,7 @@ def test_feature_engineer_drops_columns_and_names_match():
 
 def test_feature_engineer_can_be_disabled():
     X = load_clean().drop(columns=TARGET).head(50)
-    out = ChurnFeatureEngineer(add_features=False, drop_cols=(), merge_no_internet=False).fit_transform(X)
+    out = ChurnFeatureEngineer(features=(), drop_cols=(), merge_no_internet=False).fit_transform(X)
     pd.testing.assert_frame_equal(out, X)
 
 
@@ -103,7 +103,7 @@ def test_preprocessing_output_is_numeric_with_readable_names(fitted):
     Xt = pipe[:-1].transform(X_test)
     assert Xt.isna().sum().sum() == 0
     assert all(pd.api.types.is_numeric_dtype(Xt[c]) for c in Xt.columns)
-    assert "Contract_Two year" in Xt.columns and "nb_protections" in Xt.columns
+    assert "Contract_Two year" in Xt.columns and "log_tenure" in Xt.columns
     assert not any(c.startswith("gender") for c in Xt.columns)
     assert not any("No internet service" in c for c in Xt.columns)
 
@@ -130,3 +130,26 @@ def test_unknown_category_does_not_crash(fitted):
     X_new.iloc[0, X_new.columns.get_loc("PaymentMethod")] = "Crypto"
     with pytest.warns(UserWarning, match="unknown categories"):
         assert pipe.predict_proba(X_new).shape == (3, 2)
+
+
+def test_names_match_when_an_engineered_feature_is_dropped(clean_df):
+    """Cas de l'ablation : retirer une feature créée ne doit pas décaler les noms."""
+    X = clean_df.drop(columns=TARGET).head(50)
+    fe = ChurnFeatureEngineer(features=tuple(CANDIDATE_FEATURES), drop_cols=("gender", "log_tenure"))
+    fe = fe.set_output(transform="pandas").fit(X)
+    out = fe.transform(X)
+    assert "log_tenure" not in out.columns
+    assert list(out.columns) == list(fe.get_feature_names_out())
+    assert (out["nb_protections"] <= 4).all()  # la colonne contient bien ce que son nom annonce
+
+
+def test_default_uses_selected_features_only(clean_df):
+    X = clean_df.drop(columns=TARGET).head(20)
+    out = ChurnFeatureEngineer().fit_transform(X)
+    added = [c for c in CANDIDATE_FEATURES if c in out.columns]
+    assert added == SELECTED_FEATURES
+
+
+def test_unknown_feature_raises(clean_df):
+    with pytest.raises(ValueError, match="inconnues"):
+        ChurnFeatureEngineer(features=("magic",)).fit(clean_df.drop(columns=TARGET).head(5))
