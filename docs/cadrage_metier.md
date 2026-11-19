@@ -77,3 +77,20 @@ Avec une CLV moyenne d'un partant d'environ 893 $ (12 × 74,4), un vrai positif 
 - **Données anciennes et américaines** (prix en $) : les ordres de grandeur sont illustratifs.
 - **Hypothèses de coût fictives** : d'où leur caractère paramétrable.
 - **Variables sensibles** (`gender`, `SeniorCitizen`) : à surveiller pour éviter un ciblage discriminatoire (vérification de biais en phase 9).
+
+## 8. Bilan en fin de projet (Phase 9)
+
+Résultats mesurés sur le jeu de test (1 409 clients jamais vus), confrontés aux critères de succès de la section 6.
+
+| # | Critère | Résultat | Statut |
+|---|---|---|---|
+| 1 | Le modèle final bat la baseline (régression logistique) en PR-AUC | Sans objet tel que formulé : la baseline **est** le modèle retenu. Les modèles plus complexes (XGBoost, LightGBM optimisés) ne l'ont pas battue significativement (p = 0,48 et 0,31). Le modèle bat largement le vrai plancher (classement au hasard : PR-AUC 0,265 → 0,665 sur le test). | ⚠️ Reformulé |
+| 2 | Gain net supérieur aux stratégies naïves | **53 311 $** contre 27 524 $ (tout le monde) et 0 $ (personne), soit 67 % du gain d'un oracle. Écarts confirmés par bootstrap. | ✅ |
+| 3 | Prédictions explicables, au niveau global et individuel | SHAP exact (modèle linéaire), regroupé par variable et traduit en phrases. Distinction entre leviers actionnables et simples corrélats. | ✅ |
+| 4 | Utilisable par un non-technicien | Application Streamlit déployée : fiche client, simulation de leviers, scoring de fichier, tableau de bord. | ✅ |
+
+**Leçon sur le critère n° 1.** Il supposait qu'un modèle plus complexe ferait mieux. Les données ont montré le contraire : le problème est presque linéaire, et la logistique offre en plus la meilleure calibration. Ce critère aurait dû être formulé ainsi : *« le modèle retenu n'est significativement battu par aucun autre, et il bat le classement au hasard »*. Ainsi formulé, il est atteint.
+
+**Variables sensibles** (section 7) : l'audit d'équité ne montre aucun écart de calibration significatif selon le genre, l'âge ou les personnes à charge. Le retrait de `SeniorCitizen`, sans perte de performance, est recommandé pour une version 2 ([model card](model_card.md), [notebook 08](../notebooks/08_equite.ipynb)).
+
+**Métriques prévues en section 5.** Le gain net a bien été le critère final de décision. Le F2-score n'a pas été nécessaire : la règle du gain espéré fixe directement le compromis entre précision et rappel à partir des coûts, plutôt que par une pondération arbitraire.
