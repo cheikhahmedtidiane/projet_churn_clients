@@ -1,0 +1,40 @@
+{
+  "name": "churn_model",
+  "created_at": "2026-11-19T15:54:14+00:00",
+  "sklearn_version": "1.9.1",
+  "pandas_version": "3.1.1",
+  "model": "Régression logistique (optimisée)",
+  "estimator": "LogisticRegression",
+  "hyperparameters": {
+    "C": 0.11266561314230847,
+    "class_weight": null,
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": 0.21074744283141758,
+    "max_iter": 5000,
+    "n_jobs": null,
+    "penalty": "deprecated",
+    "random_state": null,
+    "solver": "saga",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "features_added": [
+    "log_tenure",
+    "fiber_month_to_month"
+  ],
+  "features_dropped": [
+    "gender",
+    "PhoneService",
+    "TotalCharges"
+  ],
+  "n_train": 5634,
+  "train_churn_rate": 0.2653532126375577,
+  "cv_protocol": "RepeatedStratifiedKFold 5x3 (random_state=42), jeu d'entraînement",
+  "cv_pr_auc": 0.6746,
+  "cv_pr_auc_std": 0.0173,
+  "cv_roc_auc": 0.8511,
+  "cv_brier": 0.1326
+}

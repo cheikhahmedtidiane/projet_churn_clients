@@ -22,7 +22,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | 2 | Qualité et nettoyage des données | ✅ |
 | 3 | Analyse exploratoire orientée insights | ✅ |
 | 4 | Feature engineering et pipeline | ✅ |
-| 5 | Modélisation et comparaison | ⏳ |
+| 5 | Modélisation et comparaison | ✅ |
 | 6 | Évaluation et optimisation business du seuil | ⏳ |
 | 7 | Explicabilité (SHAP) | ⏳ |
 | 8 | Application Streamlit | ⏳ |
@@ -62,6 +62,14 @@ Le **genre** n'a aucun lien avec le churn (p = 0,49).
 - **Étude d'ablation** sur 2 familles de modèles : sur 5 features candidates issues de l'EDA, seules `log_tenure` et `fiber_month_to_month` apportent un gain. Les 3 autres sont abandonnées, pour un modèle plus simple sans perte de performance.
 
 <img src="reports/figures/04_ablation.png" width="760" alt="Étude d'ablation : PR-AUC en validation croisée selon les étapes du feature engineering">
+
+**Phase 5 — Modélisation** ([notebook](notebooks/05_modelisation.ipynb))
+- 5 familles comparées sur les mêmes 15 plis de validation croisée : Dummy, régression logistique, Random Forest, XGBoost, LightGBM.
+- Les modèles d'arbres par défaut **sur-apprennent** (Random Forest : PR-AUC 1,00 à l'entraînement contre 0,62 en validation). Optimisés avec **Optuna**, ils rejoignent la logistique sans la dépasser (t-test corrigé de Nadeau & Bengio : p > 0,3).
+- **Rééquilibrer les classes** (`class_weight`, SMOTE) n'améliore pas le classement et **fausse les probabilités** (risque moyen prédit de 41 % pour un churn réel de 26,5 %). Le déséquilibre sera traité par le seuil de décision.
+- **Modèle retenu : régression logistique régularisée** (Elastic Net). Aussi performante (PR-AUC 0,675, ROC-AUC 0,851), la mieux calibrée, explicable et légère (10 Ko).
+
+<img src="reports/figures/05_calibration_reequilibrage.png" width="460" alt="Courbe de calibration : le rééquilibrage des classes surestime le risque">
 
 ## Données
 
