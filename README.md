@@ -2,6 +2,10 @@
 
 > Identifier les clients à risque de départ, comprendre pourquoi, et décider lesquels cibler pour **maximiser le gain net** d'une campagne de rétention.
 
+[![Application en ligne](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://projetchurnclients-bcn6dfiavqhmbjycj87huf.streamlit.app/)
+
+**▶ Application en ligne : [projetchurnclients.streamlit.app](https://projetchurnclients-bcn6dfiavqhmbjycj87huf.streamlit.app/)**
+
 **Statut :** en cours de développement
 
 **Résultat clé :** sur des clients jamais vus, cibler les clients dont le **gain espéré est positif** rapporte **~37 800 $ pour 1 000 clients**, soit presque **2 fois** plus que contacter tout le monde et **+33 %** par rapport au seuil de 0,5 par défaut.
@@ -27,7 +31,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | 5 | Modélisation et comparaison | ✅ |
 | 6 | Évaluation et optimisation business du seuil | ✅ |
 | 7 | Explicabilité (SHAP) | ✅ |
-| 8 | Application Streamlit | 🔄 (déploiement en ligne à venir) |
+| 8 | Application Streamlit ([en ligne](https://projetchurnclients-bcn6dfiavqhmbjycj87huf.streamlit.app/)) | ✅ |
 | 9 | Valorisation et model card | ⏳ |
 
 ## Insights clés
@@ -107,6 +111,10 @@ L'application met le modèle entre les mains de l'équipe de rétention. Elle co
 | **Tableau de bord** | Gain réellement obtenu sur le jeu de test selon la stratégie, recalculé selon les hypothèses |
 
 Toute la logique est dans une couche de service testée ([`src/churn/service.py`](src/churn/service.py)) : l'application calcule exactement la même chose que les notebooks. Chaque page est couverte par un test de fumée (`streamlit.testing`).
+
+**En ligne** (Streamlit Community Cloud) : [projetchurnclients.streamlit.app](https://projetchurnclients-bcn6dfiavqhmbjycj87huf.streamlit.app/). L'application peut mettre quelques secondes à se réveiller après une période d'inactivité.
+
+En local :
 
 ```bash
 streamlit run app/streamlit_app.py
