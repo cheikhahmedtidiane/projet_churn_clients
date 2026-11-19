@@ -27,7 +27,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | 5 | Modélisation et comparaison | ✅ |
 | 6 | Évaluation et optimisation business du seuil | ✅ |
 | 7 | Explicabilité (SHAP) | ✅ |
-| 8 | Application Streamlit | ⏳ |
+| 8 | Application Streamlit | 🔄 (déploiement en ligne à venir) |
 | 9 | Valorisation et model card | ⏳ |
 
 ## Insights clés
@@ -95,6 +95,27 @@ Le **genre** n'a aucun lien avec le churn (p = 0,49).
 
 <img src="reports/figures/07_explications_clients.png" width="560" alt="Explications SHAP de trois clients du jeu de test">
 
+## Application Streamlit
+
+L'application met le modèle entre les mains de l'équipe de rétention. Elle contient quatre pages, et les hypothèses économiques (coût d'une action, taux de succès, horizon) sont réglables dans la barre latérale.
+
+| Page | Usage |
+|---|---|
+| **Fiche client** | Risque de départ, seuil de rentabilité, décision (contacter ou non) et explication SHAP, pour un client existant ou saisi dans un formulaire |
+| **Simulation de leviers** | Effet d'une offre (contrat annuel, support technique, paiement automatique…) sur le risque, et coût maximal de l'offre pour qu'elle reste rentable |
+| **Scoring d'un fichier** | Import d'un CSV, liste d'appels priorisée par gain espéré, mode budget limité, export compatible Excel |
+| **Tableau de bord** | Gain réellement obtenu sur le jeu de test selon la stratégie, recalculé selon les hypothèses |
+
+Toute la logique est dans une couche de service testée ([`src/churn/service.py`](src/churn/service.py)) : l'application calcule exactement la même chose que les notebooks. Chaque page est couverte par un test de fumée (`streamlit.testing`).
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+<img src="reports/figures/08_app_fiche_client.jpg" width="760" alt="Application : fiche client avec risque, décision et explication">
+
+<img src="reports/figures/08_app_tableau_de_bord.jpg" width="760" alt="Application : tableau de bord du gain de campagne">
+
 ## Données
 
 [IBM Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn) : 7 043 clients, 21 variables (profil, services souscrits, contrat, facturation, churn).
@@ -102,15 +123,16 @@ Le **genre** n'a aucun lien avec le churn (p = 0,49).
 ## Structure du projet
 
 ```
-├── app/                 Application Streamlit
+├── app/                 Application Streamlit (point d'entrée, pages, dépendances figées)
 ├── data/
 │   ├── raw/             Données originales (jamais modifiées)
-│   └── processed/       Données nettoyées (générées par le code)
+│   ├── processed/       Données nettoyées (générées par le code)
+│   └── sample/          Fichier d'exemple pour le scoring (clients du jeu de test, sans la cible)
 ├── docs/                Documentation (cadrage métier…)
 ├── models/              Modèles entraînés
 ├── notebooks/           Analyses numérotées par phase
 ├── reports/figures/     Graphiques exportés
-├── src/churn/           Code réutilisable (config, nettoyage, features, modèle)
+├── src/churn/           Code réutilisable (config, nettoyage, features, modèle, business, explications, service)
 └── tests/               Tests unitaires (pytest)
 ```
 
