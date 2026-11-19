@@ -44,6 +44,7 @@ FEATURE_COLS = NUMERIC_COLS + CATEGORICAL_COLS
 # Feature engineering (Phase 4)
 PROTECTION_SERVICES = ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport"]
 STREAMING_SERVICES = ["StreamingTV", "StreamingMovies"]
+INTERNET_OPTIONS = PROTECTION_SERVICES + STREAMING_SERVICES  # n'existent qu'avec internet
 NEW_CLIENT_MAX_TENURE = 6  # mois : zone de risque maximal identifiée en EDA
 
 ENGINEERED_NUMERIC = ["log_tenure", "nb_protections", "nb_streaming"]

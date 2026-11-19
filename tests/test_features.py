@@ -6,7 +6,9 @@ import pytest
 
 from churn.config import TARGET
 from churn.data import load_clean
-from churn.features import ChurnFeatureEngineer, split_data
+from sklearn.linear_model import LogisticRegression
+
+from churn.features import ChurnFeatureEngineer, build_pipeline, split_data
 
 
 @pytest.fixture(scope="module")
@@ -60,8 +62,17 @@ def test_feature_engineer_drops_columns_and_names_match():
 
 def test_feature_engineer_can_be_disabled():
     X = load_clean().drop(columns=TARGET).head(50)
-    out = ChurnFeatureEngineer(add_features=False, drop_cols=()).fit_transform(X)
-    assert list(out.columns) == list(X.columns)
+    out = ChurnFeatureEngineer(add_features=False, drop_cols=(), merge_no_internet=False).fit_transform(X)
+    pd.testing.assert_frame_equal(out, X)
+
+
+def test_no_internet_service_merged_without_information_loss():
+    X = load_clean().drop(columns=TARGET)
+    out = ChurnFeatureEngineer().fit_transform(X)
+    assert not (out["OnlineSecurity"] == "No internet service").any()
+    # L'absence d'internet reste identifiable via InternetService
+    no_internet = X["OnlineSecurity"] == "No internet service"
+    assert (out.loc[no_internet, "InternetService"] == "No").all()
 
 
 def test_feature_engineer_does_not_modify_input():
@@ -69,3 +80,53 @@ def test_feature_engineer_does_not_modify_input():
     before = X.copy()
     ChurnFeatureEngineer().fit_transform(X)
     pd.testing.assert_frame_equal(X, before)
+
+
+# --- Pipeline complet ----------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def fitted(clean_df):
+    X_train, X_test, y_train, y_test = split_data(clean_df)
+    pipe = build_pipeline(LogisticRegression(max_iter=1000)).fit(X_train, y_train)
+    return pipe, X_train, X_test
+
+
+def test_pipeline_predicts_probabilities(fitted):
+    pipe, _, X_test = fitted
+    proba = pipe.predict_proba(X_test)[:, 1]
+    assert proba.shape == (len(X_test),)
+    assert ((proba >= 0) & (proba <= 1)).all()
+
+
+def test_preprocessing_output_is_numeric_with_readable_names(fitted):
+    pipe, _, X_test = fitted
+    Xt = pipe[:-1].transform(X_test)
+    assert Xt.isna().sum().sum() == 0
+    assert all(pd.api.types.is_numeric_dtype(Xt[c]) for c in Xt.columns)
+    assert "Contract_Two year" in Xt.columns and "nb_protections" in Xt.columns
+    assert not any(c.startswith("gender") for c in Xt.columns)
+    assert not any("No internet service" in c for c in Xt.columns)
+
+
+def test_no_perfectly_duplicated_columns(fitted):
+    """Aucune colonne identique à une autre (multicolinéarité parfaite)."""
+    pipe, X_train, _ = fitted
+    Xt = pipe[:-1].transform(X_train)
+    assert not Xt.T.duplicated().any()
+
+
+def test_scaler_fitted_on_train_only(fitted):
+    """Pas de fuite : la moyenne du scaler est celle du jeu d'entraînement."""
+    pipe, X_train, _ = fitted
+    scaler = pipe.named_steps["preprocess"].named_transformers_["num"]
+    idx = list(scaler.feature_names_in_).index("MonthlyCharges")
+    assert scaler.mean_[idx] == pytest.approx(X_train["MonthlyCharges"].mean())
+
+
+def test_unknown_category_does_not_crash(fitted):
+    pipe, _, X_test = fitted
+    X_new = X_test.head(3).copy()
+    X_new["PaymentMethod"] = X_new["PaymentMethod"].cat.add_categories("Crypto")
+    X_new.iloc[0, X_new.columns.get_loc("PaymentMethod")] = "Crypto"
+    with pytest.warns(UserWarning, match="unknown categories"):
+        assert pipe.predict_proba(X_new).shape == (3, 2)
