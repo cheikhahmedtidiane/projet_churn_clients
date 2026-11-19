@@ -41,6 +41,17 @@ CATEGORICAL_COLS = [
 
 FEATURE_COLS = NUMERIC_COLS + CATEGORICAL_COLS
 
+# Feature engineering (Phase 4)
+PROTECTION_SERVICES = ["OnlineSecurity", "OnlineBackup", "DeviceProtection", "TechSupport"]
+STREAMING_SERVICES = ["StreamingTV", "StreamingMovies"]
+NEW_CLIENT_MAX_TENURE = 6  # mois : zone de risque maximal identifiée en EDA
+
+ENGINEERED_NUMERIC = ["log_tenure", "nb_protections", "nb_streaming"]
+ENGINEERED_FLAGS = ["is_new_client", "fiber_month_to_month"]
+
+# Variables retirées : sans lien avec le churn (gender, PhoneService) ou redondantes (TotalCharges)
+DROPPED_COLS = ["gender", "PhoneService", "TotalCharges"]
+
 RANDOM_STATE = 42  # reproductibilité : mêmes résultats à chaque exécution
 TEST_SIZE = 0.20   # 20 % des clients réservés à l'évaluation finale
 
