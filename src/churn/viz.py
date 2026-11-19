@@ -13,6 +13,7 @@ from churn.config import FIGURES_DIR
 # Couleurs de séries
 BLUE = "#2a78d6"    # reste / série unique
 ORANGE = "#eb6834"  # part
+AQUA = "#1baf7a"    # 2e série quand l'orange (= part) prêterait à confusion
 
 CHURN_COLORS = {0: BLUE, 1: ORANGE}
 CHURN_LABELS = {0: "Reste", 1: "Part"}
