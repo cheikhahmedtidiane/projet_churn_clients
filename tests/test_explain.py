@@ -41,7 +41,9 @@ def test_every_group_has_a_french_label(fitted):
 def test_explain_client_sorted_and_readable(fitted):
     _, explainer, X = fitted
     table = explainer.explain_client(X.iloc[[0]])
-    assert list(table.columns) == ["variable", "libellé", "valeur", "contribution", "effet"]
+    assert list(table.columns) == ["variable", "libellé", "valeur", "contribution", "effet", "actionnable"]
+    assert table.set_index("variable").loc["Contract", "actionnable"]
+    assert not table.set_index("variable").loc["MonthlyCharges", "actionnable"]
     assert table["contribution"].abs().is_monotonic_decreasing
     assert table.loc[table["variable"] == "tenure", "valeur"].iloc[0].endswith("mois")
     assert set(table["effet"]) <= {"augmente le risque", "réduit le risque", "effet négligeable"}

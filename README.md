@@ -26,7 +26,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | 4 | Feature engineering et pipeline | ✅ |
 | 5 | Modélisation et comparaison | ✅ |
 | 6 | Évaluation et optimisation business du seuil | ✅ |
-| 7 | Explicabilité (SHAP) | ⏳ |
+| 7 | Explicabilité (SHAP) | ✅ |
 | 8 | Application Streamlit | ⏳ |
 | 9 | Valorisation et model card | ⏳ |
 
@@ -83,6 +83,17 @@ Le **genre** n'a aucun lien avec le churn (p = 0,49).
 <img src="reports/figures/06_strategies.png" width="760" alt="Gain net de la campagne sur le jeu de test selon la stratégie de ciblage">
 
 <img src="reports/figures/06_regle_gain_espere.png" width="640" alt="Règle du gain espéré : le seuil de risque baisse quand la facture augmente">
+
+**Phase 7 — Explicabilité (SHAP)** ([notebook](notebooks/07_explicabilite.ipynb))
+- Valeurs SHAP **exactes** (modèle linéaire), regroupées par variable d'origine et traduites en français ([`src/churn/explain.py`](src/churn/explain.py)). L'additivité est vérifiée par les tests.
+- **Ancienneté, contrat et type d'internet** portent près de la moitié des décisions du modèle.
+- **Effet brut contre effet propre** : à autres variables fixées, chaque facteur pèse bien moins qu'en apparence. Le contrat mensuel passe de ×25 à ×4 sur la cote de départ, et le sur-risque des seniors fond en grande partie. Les facteurs se cumulent chez les mêmes clients.
+- **Explication de chaque client** : une cascade SHAP et des raisons en langage métier, avec la distinction entre leviers actionnables (contrat, services de protection, paiement) et simples corrélats.
+- **Limites assumées** : la facture est presque la somme du prix des services (R² = 0,999), donc les effets propres du streaming et de la facture ne sont pas interprétés. Association n'est pas causalité, et chaque levier est à valider par un test A/B.
+
+<img src="reports/figures/07_effet_brut_vs_propre.png" width="700" alt="Effet brut (EDA) contre effet propre (modèle) en rapport de cotes">
+
+<img src="reports/figures/07_explications_clients.png" width="560" alt="Explications SHAP de trois clients du jeu de test">
 
 ## Données
 

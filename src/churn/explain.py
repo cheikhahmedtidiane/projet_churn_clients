@@ -38,6 +38,11 @@ FEATURE_LABELS = {
     "PaymentMethod": "Moyen de paiement",
 }
 
+# Variables sur lesquelles l'entreprise peut agir (offre, service, paiement).
+# Facture, streaming et lignes multiples en sont exclus : la facture est presque la somme
+# du prix des services (R² = 0,999), leur effet propre n'est pas interprétable.
+ACTIONABLE = {"Contract", "OnlineSecurity", "TechSupport", "OnlineBackup", "DeviceProtection", "PaymentMethod"}
+
 # En dessous de ce seuil (log-odds), une contribution est jugée négligeable
 NEGLIGIBLE = 0.01
 
@@ -113,7 +118,8 @@ class ChurnExplainer:
     def explain_client(self, x: pd.DataFrame) -> pd.DataFrame:
         """Explication d'un client (DataFrame d'une ligne), triée par impact décroissant.
 
-        Colonnes : libellé, valeur lisible, contribution (log-odds), sens de l'effet.
+        Colonnes : libellé, valeur lisible, contribution (log-odds), sens de l'effet,
+        variable actionnable ou non (levier à la main de l'entreprise).
         """
         if len(x) != 1:
             raise ValueError("explain_client attend exactement un client.")
@@ -128,6 +134,7 @@ class ChurnExplainer:
         table["effet"] = np.select(
             [table["contribution"].abs() < NEGLIGIBLE, table["contribution"] > 0],
             ["effet négligeable", "augmente le risque"], "réduit le risque")
+        table["actionnable"] = table["variable"].isin(ACTIONABLE)
         return table.reindex(table["contribution"].abs().sort_values(ascending=False).index).reset_index(drop=True)
 
     def reasons(self, x: pd.DataFrame, top: int = 3, min_abs: float = 0.05) -> dict:
