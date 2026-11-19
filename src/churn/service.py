@@ -114,8 +114,12 @@ class ChurnService:
     # --- Préparation -------------------------------------------------------------
     @staticmethod
     def prepare(raw: pd.DataFrame) -> pd.DataFrame:
-        """Valide et nettoie des clients au format brut (lève ValueError si colonnes manquantes)."""
-        return clean(raw)
+        """Valide et nettoie des clients au format brut (lève ValueError si colonnes manquantes).
+
+        Ne conserve que les variables du modèle : une éventuelle colonne Churn (fichier
+        historique) ou des colonnes en trop sont écartées.
+        """
+        return clean(raw)[FEATURE_COLS]
 
     # --- Prédiction et décision ---------------------------------------------------
     def predict_proba(self, X: pd.DataFrame) -> np.ndarray:

@@ -48,6 +48,13 @@ def test_prepare_raw_file(service):
     assert X.index.name == "customerID" and len(service.score(X)) == 5
 
 
+def test_prepare_drops_target_and_extra_columns(service):
+    raw = load_raw().head(5).assign(colonne_en_trop=1)  # contient aussi Churn
+    X = service.prepare(raw)
+    assert list(X.columns) == FEATURE_COLS
+    assert np.allclose(service.score(X)["risque"], service.score(service.prepare(raw.drop(columns="Churn")))["risque"])
+
+
 def test_prepare_rejects_missing_columns(service):
     with pytest.raises(ValueError, match="Colonnes manquantes"):
         service.prepare(load_raw().head(3).drop(columns=["Contract", "Churn"]))
