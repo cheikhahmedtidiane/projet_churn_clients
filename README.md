@@ -4,6 +4,8 @@
 
 **Statut :** en cours de développement
 
+**Résultat clé :** sur des clients jamais vus, cibler les clients dont le **gain espéré est positif** rapporte **~37 800 $ pour 1 000 clients**, soit presque **2 fois** plus que contacter tout le monde et **+33 %** par rapport au seuil de 0,5 par défaut.
+
 ## Le problème
 
 Sur 7 043 clients d'un opérateur télécom, **26,5 % sont partis**, ce qui représente **~1,67 M$ de revenu annuel perdu**. Les clients qui partent paient en moyenne **21 % de plus** que ceux qui restent (74,4 $ contre 61,3 $ par mois).
@@ -23,7 +25,7 @@ Cadrage détaillé : [docs/cadrage_metier.md](docs/cadrage_metier.md)
 | 3 | Analyse exploratoire orientée insights | ✅ |
 | 4 | Feature engineering et pipeline | ✅ |
 | 5 | Modélisation et comparaison | ✅ |
-| 6 | Évaluation et optimisation business du seuil | ⏳ |
+| 6 | Évaluation et optimisation business du seuil | ✅ |
 | 7 | Explicabilité (SHAP) | ⏳ |
 | 8 | Application Streamlit | ⏳ |
 | 9 | Valorisation et model card | ⏳ |
@@ -70,6 +72,17 @@ Le **genre** n'a aucun lien avec le churn (p = 0,49).
 - **Modèle retenu : régression logistique régularisée** (Elastic Net). Aussi performante (PR-AUC 0,675, ROC-AUC 0,851), la mieux calibrée, explicable et légère (10 Ko).
 
 <img src="reports/figures/05_calibration_reequilibrage.png" width="460" alt="Courbe de calibration : le rééquilibrage des classes surestime le risque">
+
+**Phase 6 — Évaluation finale et décision business** ([notebook](notebooks/06_evaluation_business.ipynb))
+- **Jeu de test ouvert une seule fois** : PR-AUC 0,665 (IC 95 % bootstrap : 0,615 – 0,714), ROC-AUC 0,848, cohérentes avec la validation croisée. Probabilités bien calibrées (26,8 % prédit pour 26,5 % observé).
+- **Règle de ciblage** : contacter un client si `p × 30 % × 12 × facture > 50 $`. Le seuil s'adapte à la valeur du client (de 12 % à 76 % de risque) et la règle n'a aucun paramètre à régler. Choisie sur les prédictions hors pli de l'entraînement, puis mesurée sur le test.
+- **Gain net sur le test : 53 311 $** pour 1 409 clients (615 contactés), soit **67 % du gain maximal théorique**. À comparer à 27 524 $ (tout le monde) et 40 087 $ (seuil 0,5), avec des écarts confirmés par bootstrap.
+- **Budget limité** : contacter les 20 % de clients les plus risqués capte **51 % des partants**. À budget égal, classer par gain espéré rapporte davantage que classer par risque.
+- **Sensibilité** : la règle ne perd d'argent dans aucun scénario (coût de 25 à 100 $, succès de 10 à 50 %). Le taux de succès est l'hypothèse à mesurer en priorité, via un groupe témoin.
+
+<img src="reports/figures/06_strategies.png" width="760" alt="Gain net de la campagne sur le jeu de test selon la stratégie de ciblage">
+
+<img src="reports/figures/06_regle_gain_espere.png" width="640" alt="Règle du gain espéré : le seuil de risque baisse quand la facture augmente">
 
 ## Données
 
