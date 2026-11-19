@@ -7,6 +7,7 @@ Palette validée pour la lisibilité par les personnes daltoniennes.
 """
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from churn.config import FIGURES_DIR
 
@@ -90,3 +91,58 @@ def plot_churn_rate(ax, table, title: str, global_rate: float) -> None:
     ax.xaxis.set_major_formatter(lambda v, _: fmt_pct(v, 0))
     ax.grid(axis="y", visible=False)
     ax.set_title(title, fontsize=11)
+
+
+def _sigmoid(z):
+    return 1 / (1 + np.exp(-np.asarray(z, dtype=float)))
+
+
+def _logit(p):
+    p = np.clip(np.asarray(p, dtype=float), 1e-6, 1 - 1e-6)
+    return np.log(p / (1 - p))
+
+
+def plot_explanation(ax, table, base_value: float, top: int = 7) -> None:
+    """Cascade SHAP d'un client : du risque de référence au risque du client.
+
+    Args:
+        table: sortie de ChurnExplainer.explain_client (triée par impact décroissant).
+        base_value: valeur de base de l'explainer (log-odds).
+        top: nombre de variables détaillées ; les autres sont regroupées.
+    """
+    shown = table.head(top)
+    rest = table.iloc[top:]["contribution"].sum()
+    labels = [f"{r['libellé']} = {r['valeur']}" for _, r in shown.iterrows()]
+    values = list(shown["contribution"])
+    if len(table) > top:
+        labels.append(f"Autres variables ({len(table) - top})")
+        values.append(rest)
+
+    start = base_value
+    for i, (label, v) in enumerate(zip(labels, values)):
+        color = ORANGE if v > 0 else BLUE
+        ax.barh(i, v, left=start, color=color, height=0.6)
+        ax.text(start + v + (0.04 if v >= 0 else -0.04), i, f"{v:+.2f}".replace(".", ","),
+                va="center", ha="left" if v >= 0 else "right", fontsize=8, color=TEXT_SECONDARY)
+        if i < len(labels) - 1:
+            ax.plot([start + v] * 2, [i + 0.3, i + 0.7], color=TEXT_SECONDARY, lw=0.8)
+        start += v
+    final = start
+
+    ax.axvline(base_value, color=TEXT_SECONDARY, lw=1, ls="--")
+    ax.axvline(final, color=TEXT, lw=1.5)
+    ax.set_yticks(range(len(labels)), labels, fontsize=9)
+    ax.invert_yaxis()
+    ax.grid(axis="y", visible=False)
+    lo = min(base_value, final, *(base_value + np.cumsum(values))) - 0.6
+    hi = max(base_value, final, *(base_value + np.cumsum(values))) + 0.6
+    ax.set_xlim(lo, hi)
+    ax.xaxis.set_major_formatter(lambda v, _: f"{v:.1f}".replace(".", ","))
+    ax.set_xlabel(f"Score du modèle (log-odds) — référence {fmt_pct(_sigmoid(base_value))} (pointillés) "
+                  f"→ risque du client {fmt_pct(_sigmoid(final))} (trait plein)")
+    top_axis = ax.secondary_xaxis("top", functions=(_sigmoid, _logit))
+    ticks = [p for p in (0.01, 0.02, 0.05, 0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 0.95, 0.99)
+             if lo <= _logit(p) <= hi]
+    top_axis.set_xticks(ticks, [fmt_pct(p, 0) for p in ticks])
+    top_axis.tick_params(labelsize=8, colors=TEXT_SECONDARY)
+    top_axis.set_xlabel("Probabilité de départ", fontsize=8, color=TEXT_SECONDARY)
